@@ -38,10 +38,10 @@ func (t *Translator) getURL() string {
 	return PRO_URL
 }
 
-func (t *Translator) createBody(text string, targetLang string) *bytes.Buffer {
+func (t *Translator) createBody(text []string, targetLang string) *bytes.Buffer {
 	bodyData := struct {
-		Text       string `json:"text"`
-		TargetLang string `json:"target_lang"`
+		Text       []string `json:"text"`
+		TargetLang string   `json:"target_lang"`
 	}{
 		Text:       text,
 		TargetLang: targetLang,
@@ -51,7 +51,7 @@ func (t *Translator) createBody(text string, targetLang string) *bytes.Buffer {
 	return bytes.NewBuffer(bodyJSON)
 }
 
-func (t *Translator) Translate(text string, targetLang string) (string, error) {
+func (t *Translator) Translate(text []string, targetLang string) (string, error) {
 	c := http.Client{Timeout: time.Duration(5 * time.Second)}
 
 	req, err := http.NewRequest("POST", t.getURL(), t.createBody(text, targetLang))
