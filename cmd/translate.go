@@ -46,7 +46,7 @@ func TranslateCommand() *cobra.Command {
 				return nil
 			}
 
-			fmt.Println(result)
+			fmt.Println(result.Translations)
 
 			return nil
 		},

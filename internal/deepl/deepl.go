@@ -3,7 +3,6 @@ package deepl
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -51,12 +50,19 @@ func (t *Translator) createBody(text []string, targetLang string) *bytes.Buffer 
 	return bytes.NewBuffer(bodyJSON)
 }
 
-func (t *Translator) Translate(text []string, targetLang string) (string, error) {
+type Response struct {
+	Translations []struct {
+		DetectedSourceLanguage string `json:"detected_source_language"`
+		Text                   string `json:"text"`
+	} `json:"translations"`
+}
+
+func (t *Translator) Translate(text []string, targetLang string) (Response, error) {
 	c := http.Client{Timeout: time.Duration(5 * time.Second)}
 
 	req, err := http.NewRequest("POST", t.getURL(), t.createBody(text, targetLang))
 	if err != nil {
-		return "", err
+		return Response{}, err
 	}
 
 	req.Header.Add("Authorization", "DeepL-Auth-Key "+t.authKey)
@@ -69,12 +75,15 @@ func (t *Translator) Translate(text []string, targetLang string) (string, error)
 
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	rawResponse, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(string(body))
+	var r Response
+	if err := json.Unmarshal(rawResponse, &r); err != nil {
+		return Response{}, err
+	}
 
-	return "", nil
+	return r, nil
 }
